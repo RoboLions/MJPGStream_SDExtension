@@ -61,7 +61,7 @@ public class MJPGStreamerViewerExtension extends StaticWidget {
                     connection = url.openConnection();
                     connection.setReadTimeout(250);
                     stream = connection.getInputStream();
-
+                    connected = true;
                     while(!destroyed && !ipChanged){
                         while(System.currentTimeMillis()-lastRepaint<10){
                             stream.skip(stream.available());
@@ -103,7 +103,7 @@ public class MJPGStreamerViewerExtension extends StaticWidget {
                     }
 
                 } catch(Exception e){
-                    imageToDraw = null;
+                    connected = false;
                     repaint();
                     e.printStackTrace();
                 }
@@ -123,9 +123,10 @@ public class MJPGStreamerViewerExtension extends StaticWidget {
         }
     }
     private BufferedImage imageToDraw;
+    private boolean connected = false;
     private BGThread bgThread = new BGThread();
-    public final StringProperty ipProperty = new StringProperty(this, "Robot IP Address or mDNS name", "roborio-330-frc.local");
-    public final IntegerProperty portProperty = new IntegerProperty(this, "port", 5800);
+    public final StringProperty ipProperty = new StringProperty(this, "Robot IP Address or mDNS name", "raspberrypi.local");
+    public final IntegerProperty portProperty = new IntegerProperty(this, "port", 1180);
     public final IntegerProperty rotateProperty = new IntegerProperty(this, "Degrees Rotation", 0);
 
     @Override
@@ -203,14 +204,19 @@ public class MJPGStreamerViewerExtension extends StaticWidget {
 
             // restore the original transform
             g2d.setTransform(origXform);
-
-            g.setColor(Color.PINK);
-            g.drawString("FPS: "+lastFPS, 10, 10);
+            if (connected) {
+              g.setColor(Color.GREEN);
+              g.drawString("FPS: "+lastFPS, 10, 10);
+            } else {
+              g.setColor(Color.RED);
+              g.drawRect(0, 0, getBounds().width - 1, getBounds().height - 1);
+  	          g.drawString("NO CONNECTION", 10, 10);
+            }
         } else {
             g.setColor(Color.PINK);
             g.fillRect(0, 0, getBounds().width, getBounds().height);
             g.setColor(Color.BLACK);
-            g.drawString("NO CONNECTION", 10, 10);
+	          g.drawString("NO CONNECTION", 10, 10);
         }
     }
 }
